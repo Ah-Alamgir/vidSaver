@@ -51,10 +51,13 @@ public class download extends AppCompatActivity {
 
     private final Function3<Float, Long, String, Unit> callback = (progress, o2, line) -> {
         runOnUiThread(() -> {
-            if(line.contains("Destination")) {
-               Log.d("users", line);
-            }
+
                     show("downloading...", (long) progress.floatValue());
+
+                    if(line.contains("Destination:")) {
+                        name = line.split("Destination: ");
+                        videoLocation = name[1];
+                    }
                 }
         );
         return Unit.INSTANCE;
@@ -175,7 +178,19 @@ public class download extends AppCompatActivity {
         notificationManager.notify(0, notification);
     }
 
+
+    private void onError(String error) {
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Error occurred")
+                .setContentText(error)
+                .setSmallIcon(R.drawable.download)
+                .build();
+
+        notificationManager.notify(0, notification);
+    }
+
     private PendingIntent getPendingIntent() {
+        Log.d("users", videoLocation);
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoLocation));
         return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
