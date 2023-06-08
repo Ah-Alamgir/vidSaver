@@ -15,7 +15,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,65 +35,65 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function3;
 
 
+
 public class download extends AppCompatActivity {
 
 
-    private EditText etUrl;
-    TextView textView;
+    NotificationManager notificationManager ;
 
     private boolean downloading = false;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    NotificationManager notificationManager;
-
-    private String processId = "MyDlProcess";
-    public String downLocation;
+    private String processId = "MyDlProcess", videoLocation;
+    EditText etUrl;
     public String[] name;
+
 
 
     private final Function3<Float, Long, String, Unit> callback = (progress, o2, line) -> {
         runOnUiThread(() -> {
-            if(line.contains("Destination")){
-                name= line.split("vidSave/");
-
-                Log.d("users", String.valueOf(progress.floatValue())+"/n"+ name[1]);
+            if(line.contains("Destination")) {
+               Log.d("users", line);
             }
+                    show("downloading...", (long) progress.floatValue());
                 }
         );
         return Unit.INSTANCE;
     };
 
+    private static final String TAG =download.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download);
 
-        etUrl = findViewById(R.id.etUrls);
-        Button downloadButton = findViewById(R.id.button);
-        downloadButton.setOnClickListener(v -> startDownload());
-        notificationManager  = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-
+        Button button = findViewById(R.id.button);
+        button.setOnClickListener(v -> startDownload());
+        etUrl= findViewById(R.id.et_url);
+        notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
     }
 
 
+
+
+
     private void startDownload() {
         if (downloading) {
-            Toast.makeText(download.this, "cannot start download. a download is already in progress", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "cannot start download. a download is already in progress", Toast.LENGTH_LONG).show();
             return;
         }
 
 
         String url = etUrl.getText().toString().trim();
         if (TextUtils.isEmpty(url)) {
-            Toast.makeText(this, "enter a url", Toast.LENGTH_SHORT).show();
+            etUrl.setError("error");
             return;
         }
 
         YoutubeDLRequest request = new YoutubeDLRequest(url);
         File youtubeDLDir = getDownloadLocation();
         File config = new File(youtubeDLDir, "config.txt");
-
 
         if (config.exists()) {
             request.addOption("--config-location", config.getAbsolutePath());
@@ -106,12 +105,17 @@ public class download extends AppCompatActivity {
             request.addOption("-o", youtubeDLDir.getAbsolutePath() + "/%(title)s.%(ext)s");
         }
 
+
         downloading = true;
         Disposable disposable = Observable.fromCallable(() -> YoutubeDL.getInstance().execute(request, processId, callback))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(youtubeDLResponse -> downloading = false, e -> {
-                    textView.setText(e.getMessage());
+                .subscribe(youtubeDLResponse -> {
+                    finishDownload();
+                    downloading = false;
+                }, e -> {
+                    Log.d("users", e.getMessage());
+                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
                     downloading = false;
                 });
         compositeDisposable.add(disposable);
@@ -136,12 +140,9 @@ public class download extends AppCompatActivity {
 
 
 
-
-
     private static final String CHANNEL_ID = "download_progress";
 
-    public void show(String title, String text, long progress) {
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+    public void show(String title, long progress) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -156,51 +157,26 @@ public class download extends AppCompatActivity {
         Notification notification = new NotificationCompat.Builder(download.this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.download)
                 .setContentTitle(title)
-                .setContentText(text)
                 .setProgress(100, (int) progress, false)
                 .build();
 
         notificationManager.notify(0, notification);
     }
 
-
-
-
-    private void updateNotification(long progress) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "Download Progress",
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            channel.setDescription("Shows a notification for download progress");
-            notificationManager.createNotificationChannel(channel);
-        }
-
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("Downloading  " + String.valueOf(progress)+ "%")
-                .setProgress(100, (int) progress, false)
-                .setSmallIcon(R.drawable.download)
-                .build();
-
-        notificationManager.notify(0, notification);
-
-    }
 
     private void finishDownload() {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Download complete")
                 .setContentText("Click to open")
                 .setSmallIcon(R.drawable.download)
-                .setContentIntent(getPendingIntent(this, Uri.parse("file:///path/to/downloaded/file")))
+                .setContentIntent(getPendingIntent())
                 .build();
 
         notificationManager.notify(0, notification);
     }
 
-    private PendingIntent getPendingIntent(Context context, Uri uri) {
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+    private PendingIntent getPendingIntent() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(videoLocation));
+        return PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
     }
-
 }

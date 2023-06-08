@@ -26,7 +26,7 @@
         app:startIconTint="#FFEB3B">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etUrls"
+            android:id="@+id/et_url"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="#FFEB3B" />
