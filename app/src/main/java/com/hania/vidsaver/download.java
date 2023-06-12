@@ -7,24 +7,30 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 import com.yausername.youtubedl_android.YoutubeDL;
+import com.yausername.youtubedl_android.YoutubeDLException;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
+import com.yausername.youtubedl_android.mapper.VideoInfo;
 
 import java.io.File;
+import java.io.IOException;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -35,18 +41,17 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function3;
 
 
-
 public class download extends AppCompatActivity {
 
 
-    NotificationManager notificationManager ;
+    NotificationManager notificationManager;
 
     private boolean downloading = false;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private String processId = "MyDlProcess", videoLocation;
+    private final String processId = "MyDlProcess";
+    private String videoLocation;
     EditText etUrl;
     public String[] name;
-
 
 
     private final Function3<Float, Long, String, Unit> callback = (progress, o2, line) -> {
@@ -54,7 +59,7 @@ public class download extends AppCompatActivity {
 
                     show("downloading...", (long) progress.floatValue());
 
-                    if(line.contains("Destination:")) {
+                    if (line.contains("Destination:")) {
                         name = line.split("Destination: ");
                         videoLocation = name[1];
                     }
@@ -63,7 +68,6 @@ public class download extends AppCompatActivity {
         return Unit.INSTANCE;
     };
 
-    private static final String TAG =download.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,13 +76,32 @@ public class download extends AppCompatActivity {
 
         Button button = findViewById(R.id.button);
         button.setOnClickListener(v -> startDownload());
-        etUrl= findViewById(R.id.et_url);
+        etUrl = findViewById(R.id.et_url);
         notificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
+
+
+
+        String patha = "/storage/emulated/0/Download/vidSave/🕊𝗟𝗼𝗹𝗹𝘆𝘄𝗼𝗼𝗱 🕊 on Reels ｜.f816010386624789a-1.m4a";
+        Button open = findViewById(R.id.button2);
+
+
+
+
+
+        open.setOnClickListener(v -> {
+//            String filepath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
+//            Intent intent = new Intent(Intent.ACTION_VIEW);
+//            intent.setDataAndType(Uri.parse(filepath), "file/*");
+//
+//            // Start the activity to open the download directory.
+//            startActivity(intent);
+
+
+            startActivity(new Intent(this, videos.class));
+        });
+
     }
-
-
-
 
 
     private void startDownload() {
@@ -97,6 +120,8 @@ public class download extends AppCompatActivity {
         YoutubeDLRequest request = new YoutubeDLRequest(url);
         File youtubeDLDir = getDownloadLocation();
         File config = new File(youtubeDLDir, "config.txt");
+
+
 
         if (config.exists()) {
             request.addOption("--config-location", config.getAbsolutePath());
@@ -117,8 +142,8 @@ public class download extends AppCompatActivity {
                     finishDownload();
                     downloading = false;
                 }, e -> {
-                    Log.d("users", e.getMessage());
-                    Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+                    Log.e("users", e.getMessage());
+                    onError(e.getMessage());
                     downloading = false;
                 });
         compositeDisposable.add(disposable);
@@ -140,9 +165,6 @@ public class download extends AppCompatActivity {
     }
 
 
-
-
-
     private static final String CHANNEL_ID = "download_progress";
 
     public void show(String title, long progress) {
@@ -160,6 +182,7 @@ public class download extends AppCompatActivity {
         Notification notification = new NotificationCompat.Builder(download.this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.download)
                 .setContentTitle(title)
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 .setProgress(100, (int) progress, false)
                 .build();
 
@@ -171,6 +194,7 @@ public class download extends AppCompatActivity {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Download complete")
                 .setContentText("Click to open")
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
                 .setSmallIcon(R.drawable.download)
                 .setContentIntent(getPendingIntent())
                 .build();
@@ -183,7 +207,8 @@ public class download extends AppCompatActivity {
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Error occurred")
                 .setContentText(error)
-                .setSmallIcon(R.drawable.download)
+                .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                .setSmallIcon(R.drawable.error)
                 .build();
 
         notificationManager.notify(0, notification);

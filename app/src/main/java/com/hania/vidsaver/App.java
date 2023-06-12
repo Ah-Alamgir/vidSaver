@@ -3,7 +3,7 @@ package com.hania.vidsaver;
 
 import android.app.Application;
 
-
+import com.yausername.ffmpeg.FFmpeg;
 import com.yausername.youtubedl_android.YoutubeDL;
 import com.yausername.youtubedl_android.YoutubeDLException;
 
@@ -43,11 +43,11 @@ public class App extends Application {
 
             if (e instanceof InterruptedException) {
             }
-
         });
     }
 
     private void initLibraries() throws YoutubeDLException {
         YoutubeDL.getInstance().init(this);
+        FFmpeg.getInstance().init(this);
     }
 }
