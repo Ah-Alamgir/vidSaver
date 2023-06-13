@@ -19,6 +19,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Vidsaver">
         <activity
+            android:name=".downloadedVideos"
+            android:exported="false" />
+        <activity
             android:name=".home"
             android:exported="false" />
         <activity

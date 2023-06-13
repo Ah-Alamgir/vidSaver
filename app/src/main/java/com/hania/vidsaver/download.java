@@ -7,7 +7,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,19 +17,23 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import android.widget.VideoView;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.yausername.youtubedl_android.YoutubeDL;
-import com.yausername.youtubedl_android.YoutubeDLException;
 import com.yausername.youtubedl_android.YoutubeDLRequest;
-import com.yausername.youtubedl_android.mapper.VideoInfo;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -82,23 +85,18 @@ public class download extends AppCompatActivity {
 
 
 
-        String patha = "/storage/emulated/0/Download/vidSave/🕊𝗟𝗼𝗹𝗹𝘆𝘄𝗼𝗼𝗱 🕊 on Reels ｜.f816010386624789a-1.m4a";
+
         Button open = findViewById(R.id.button2);
 
 
 
 
 
+
+
+
         open.setOnClickListener(v -> {
-//            String filepath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getPath();
-//            Intent intent = new Intent(Intent.ACTION_VIEW);
-//            intent.setDataAndType(Uri.parse(filepath), "file/*");
-//
-//            // Start the activity to open the download directory.
-//            startActivity(intent);
-
-
-            startActivity(new Intent(this, videos.class));
+            startActivity(new Intent(this, downloadedVideos.class));
         });
 
     }
