@@ -5,9 +5,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
-import android.media.ThumbnailUtils;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
@@ -15,7 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.VideoView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -24,6 +24,7 @@ import java.util.List;
 public class downloadedVideos extends AppCompatActivity {
     private RecyclerView recyclerView;
     private List<File> videos = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +33,7 @@ public class downloadedVideos extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
 
         // Get all videos in the vidSaver folder
         File vidSaverFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "vidSave");
@@ -74,11 +76,9 @@ public class downloadedVideos extends AppCompatActivity {
             holder.videoName.setText(video.getName());
             holder.videoThumbnail.setImageBitmap(getVideoThumbnail(video));
 
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(context, "Playing video: " + video.getName(), Toast.LENGTH_SHORT).show();
-                }
+            holder.itemView.setOnClickListener(v -> {
+                playVideo.videopath = videos.get(position).getPath();
+                startActivity(new Intent(downloadedVideos.this, playVideo.class));
             });
         }
 
@@ -102,12 +102,13 @@ public class downloadedVideos extends AppCompatActivity {
     }
 
     private Bitmap getVideoThumbnail(File video) {
-        // Get the video thumbnail
+
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(video.getPath());
         Bitmap thumbnail = retriever.getFrameAtTime(0);
-
-        // Return the thumbnail
         return thumbnail;
     }
+
+
+
 }
